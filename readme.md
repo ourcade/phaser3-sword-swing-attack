@@ -29,4 +29,4 @@ This demo is based on the [phaser3-parcel-typescript-template](https://github.co
 
 ## License
 
-[MIT License](https://github.com/ourcade/phaser3-typescript-parcel-template/blob/master/LICENSE)
+[MIT License](https://github.com/ourcade/phaser3-sword-swing-attack/blob/master/LICENSE)
