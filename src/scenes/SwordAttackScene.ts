@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import StateMachine from '../statemachine/StateMachine'
 
-export default class HelloWorldScene extends Phaser.Scene
+export default class SwordAttackScene extends Phaser.Scene
 {
 	private knight!: Phaser.Physics.Arcade.Sprite
 	private knightStateMachine!: StateMachine
@@ -11,13 +11,14 @@ export default class HelloWorldScene extends Phaser.Scene
 
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
 
-	private swordHitBox!: Phaser.Types.Physics.Arcade.ImageWithDynamicBody
 	private hpText!: Phaser.GameObjects.Text
 	private boxHp = 100
 
+	private swordHitbox!: Phaser.Types.Physics.Arcade.ImageWithDynamicBody
+
 	constructor()
 	{
-		super('hello-world')
+		super('sword-attack')
 	}
 
 	init()
@@ -49,8 +50,7 @@ export default class HelloWorldScene extends Phaser.Scene
 				onUpdate: this.knightRunUpdate
 			})
 			.addState('attack', {
-				onEnter: this.knightAttackEnter,
-				onUpdate: this.knightAttackUpdate
+				onEnter: this.knightAttackEnter
 			})
 
 		this.knightStateMachine.setState('idle')
@@ -71,14 +71,19 @@ export default class HelloWorldScene extends Phaser.Scene
 		this.hpText = this.add.text(this.box.x, this.box.y - 90, `HP: ${this.boxHp}`)
 			.setOrigin(0.5)
 
-		this.swordHitBox = this.add.rectangle(0, 0, 32, 64, 0xff0000, 0.5) as unknown as Phaser.Types.Physics.Arcade.ImageWithDynamicBody
-		this.physics.add.existing(this.swordHitBox)
-		this.swordHitBox.body.enable = false
-		this.swordHitBox.visible = false
-		this.physics.world.remove(this.swordHitBox.body)
+		// TODO: create sword swing hit box
+		
+		this.swordHitbox = this.add.rectangle(0, 0, 32, 64, 0xffffff, 0) as unknown as Phaser.Types.Physics.Arcade.ImageWithDynamicBody
+		this.physics.add.existing(this.swordHitbox)
+		this.swordHitbox.body.enable = false
+		this.physics.world.remove(this.swordHitbox.body)
+		console.log(this.swordHitbox.body)
 
 		this.physics.add.collider(this.knight, this.box)
-		this.physics.add.overlap(this.swordHitBox, this.box, this.handleCollide, undefined, this)
+
+		// TODO: add physics overlap with dummy box; show box damaged on overlap
+		// this.boxStateMachine.setState('damage')
+		this.physics.add.overlap(this.swordHitbox, this.box, this.handleCollide, undefined, this)
     }
 
 	update(t: number, dt: number)
@@ -86,7 +91,7 @@ export default class HelloWorldScene extends Phaser.Scene
 		this.knightStateMachine.update(dt)
 	}
 
-	private handleCollide(hitBox: Phaser.GameObjects.GameObject, obj2: Phaser.GameObjects.GameObject)
+	private handleCollide(obj1: Phaser.GameObjects.GameObject, obj2: Phaser.GameObjects.GameObject)
 	{
 		this.boxStateMachine.setState('damage')
 	}
@@ -158,36 +163,35 @@ export default class HelloWorldScene extends Phaser.Scene
 		this.knight.play('attack')
 		this.knight.setVelocityX(0)
 
+		// TODO: move sword swing hitbox into place
+		// does it need to start part way into the animation?
 		const startHit = (anim: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) => {
-			if (frame.index >= 5)
+			if (frame.index < 5)
 			{
-				this.knight.off(Phaser.Animations.Events.ANIMATION_UPDATE, startHit)
-				this.physics.world.add(this.swordHitBox.body)
-				this.swordHitBox.body.enable = true
-				this.swordHitBox.visible = true
-
-				const offsetX = !this.knight.flipX
-					? this.knight.width * 0.25
-					: -(this.knight.width * 0.25)
-
-				this.swordHitBox.x = this.knight.x + offsetX
-				this.swordHitBox.y = this.knight.y + (this.knight.height * 0.2)
+				return
 			}
+
+			this.knight.off(Phaser.Animations.Events.ANIMATION_UPDATE, startHit)
+
+			this.swordHitbox.x = this.knight.flipX
+				? this.knight.x - this.knight.width * 0.25
+				: this.knight.x + this.knight.width * 0.25
+
+			this.swordHitbox.y = this.knight.y + this.knight.height * 0.2
+
+			this.swordHitbox.body.enable = true
+			this.physics.world.add(this.swordHitbox.body)
 		}
 
 		this.knight.on(Phaser.Animations.Events.ANIMATION_UPDATE, startHit)
 
 		this.knight.once(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + 'attack', () => {
 			this.knightStateMachine.setState('idle')
-			this.swordHitBox.body.enable = false
-			this.swordHitBox.visible = false
-			this.physics.world.remove(this.swordHitBox.body)
+
+			// TODO: hide and remove the sword swing hitbox
+			this.swordHitbox.body.enable = false
+			this.physics.world.remove(this.swordHitbox.body)
 		})
-	}
-
-	private knightAttackUpdate()
-	{
-
 	}
 
 	private createAnimations()
