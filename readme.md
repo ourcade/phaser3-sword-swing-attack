@@ -7,7 +7,7 @@
 
 This demo project shows how to to implement a sword swing attack in a Phaser 3 game using Arcade Physics.
 
-[Check out this video on YouTube for more information!](https://youtu.be/uNzLQgbYCw4)
+[Check out this video on YouTube for more information!](https://youtu.be/SCO2BbbO17c)
 
 We also use a StateMachine in this project. More information on that can be found [here as a blog post](https://blog.ourcade.co/posts/2021/character-logic-state-machine-typescript/) or [here as a video](https://youtu.be/BV8lfw-tdRU)!
 
